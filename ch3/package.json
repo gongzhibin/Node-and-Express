@@ -1,0 +1,25 @@
+{
+  "name": "ch3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.15.3",
+    "express-handlebars": "^3.0.0"
+  },
+  "devDependencies": {
+    "chai": "^4.0.2",
+    "gulp": "^3.9.1",
+    "gulp-exec": "^2.1.3",
+    "gulp-jshint": "^2.0.4",
+    "gulp-mocha": "^4.3.1",
+    "jshint": "^2.9.4",
+    "mocha": "^3.4.2",
+    "zombie": "^5.0.5"
+  }
+}
