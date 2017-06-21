@@ -3,17 +3,27 @@ var app = express();
 var path = require('path');
 
 var fortunes = require('./lib/fortunes.js');
+var getWeatherData = require('./lib/getWeatherData.js')
 // 设置handlers视图引擎
 var handlebars = require('express-handlebars')
-    .create({ defaultLayout: 'main' });
+    .create({
+        defaultLayout: 'main',
+        //向布局中加入不同的东西
+        helpers: {
+            section: function(name,options){
+                if(!this._sections) this._sections = {};
+                this._sections[name] = options.fn(this);
+                return null;
+            }
+        }
+    });
 app.engine('handlebars', handlebars.engine);
 app.set('view engine', 'handlebars');
 
 
-app.set('port', process.env.PORT || 3000);
+app.set('port', process.env.PORT || 3001);
 
 app.use(express.static(__dirname + '/public'));// 这里的文件夹前面需要加/
-
 
 //测试
 app.use(function (req, res, next) {
@@ -23,6 +33,13 @@ app.use(function (req, res, next) {
     next();
 });
 
+// // 局部文件添加中间件，获取weather信息
+// // !!!未成功不知原因
+// app.use(function(req,res,next){
+//     if(!res.locals.partials) res.locals.partials = {};
+//     res.locals.partials.weather = getWeatherData();
+//     next();
+// });
 // 中间件
 // 在 Express 中,路由和中间件的添加顺序至关重要。
 // 如果我们把404 处理器放在所有路由上面,
@@ -55,10 +72,27 @@ app.get('/about', function (req, res) {
     // res.send('About zxlg');
 });
 
-app.get('/tours/hood-river', function ( req, res){
+app.get('/jquery-test', function(req, res){
+	res.render('jquery-test');
+});
+
+app.get('/nursery-rhyme',function(req,res){
+    res.render('nursery-rhyme');
+})
+
+app.get('/data/nursery-rhyme', function(req, res){
+	res.json({
+		animal: '袋鼠',
+		bodyPart: '尾巴',
+		adjective: '浓密',
+		noun: '魔鬼',
+	});
+});
+
+app.get('/tours/hood-river', function (req, res) {
     res.render('tours/hood-river');
 });
-  app.get('/tours/request-group-rate', function(req, res){
+app.get('/tours/request-group-rate', function (req, res) {
     res.render('tours/request-group-rate');
 });
 
