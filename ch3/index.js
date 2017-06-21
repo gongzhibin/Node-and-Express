@@ -1,17 +1,19 @@
 var express = require('express');
 var app = express();
 var path = require('path');
+var bodyParser = require('body-parser');
 
 var fortunes = require('./lib/fortunes.js');
-var getWeatherData = require('./lib/getWeatherData.js')
+var getWeatherData = require('./lib/getWeatherData.js');
+
 // 设置handlers视图引擎
 var handlebars = require('express-handlebars')
     .create({
         defaultLayout: 'main',
         //向布局中加入不同的东西
         helpers: {
-            section: function(name,options){
-                if(!this._sections) this._sections = {};
+            section: function (name, options) {
+                if (!this._sections) this._sections = {};
                 this._sections[name] = options.fn(this);
                 return null;
             }
@@ -20,10 +22,14 @@ var handlebars = require('express-handlebars')
 app.engine('handlebars', handlebars.engine);
 app.set('view engine', 'handlebars');
 
-
+//设置端口
 app.set('port', process.env.PORT || 3001);
 
+//设置静态文件夹
 app.use(express.static(__dirname + '/public'));// 这里的文件夹前面需要加/
+
+//设置body-parser,解析URL编码体
+app.use(bodyParser());
 
 //测试
 app.use(function (req, res, next) {
@@ -72,23 +78,45 @@ app.get('/about', function (req, res) {
     // res.send('About zxlg');
 });
 
-app.get('/jquery-test', function(req, res){
-	res.render('jquery-test');
+app.get('/jquery-test', function (req, res) {
+    res.render('jquery-test');
 });
 
-app.get('/nursery-rhyme',function(req,res){
+//童谣
+app.get('/nursery-rhyme', function (req, res) {
     res.render('nursery-rhyme');
 })
 
-app.get('/data/nursery-rhyme', function(req, res){
-	res.json({
-		animal: '袋鼠',
-		bodyPart: '尾巴',
-		adjective: '浓密',
-		noun: '魔鬼',
-	});
+app.get('/data/nursery-rhyme', function (req, res) {
+    res.json({
+        animal: '袋鼠',
+        bodyPart: '尾巴',
+        adjective: '浓密',
+        noun: '魔鬼',
+    });
 });
 
+//表单控制
+app.get('/newsletter', function (req, res) {
+    res.render('newsletter', { csrf: 'CSRF令牌在这' });
+});
+//post方法解析需要加 body-parser 中间件
+app.post('/process', function (req, res) {
+    console.log(req.body);
+    console.log('表单 (from querystring): ' + req.query.form);
+    console.log('CSRF令牌(来自隐藏表单): ' + req.body._csrf);
+    console.log('姓名(来自可见表单): ' + req.body.name);
+    console.log('邮箱(来自可见表单): ' + req.body.email);
+    //重定向
+    res.redirect(303, '/thank-you')
+});
+
+//重定向thank-you界面
+app.get('/thank-you', function (req, res) {
+    res.render('thank-you')
+});
+
+//景点
 app.get('/tours/hood-river', function (req, res) {
     res.render('tours/hood-river');
 });
