@@ -107,8 +107,16 @@ app.post('/process', function (req, res) {
     console.log('CSRF令牌(来自隐藏表单): ' + req.body._csrf);
     console.log('姓名(来自可见表单): ' + req.body.name);
     console.log('邮箱(来自可见表单): ' + req.body.email);
-    //重定向
-    res.redirect(303, '/thank-you')
+    //如果是AJAX请求(XHR是XML HTTP请求的简称,AJAX依赖于XHR), req.xhr值为 true 。 
+    //req.accepts 试图确定返回的最合适的响应类型。
+    //req.accepts('json,html') 询问最佳返回格式是JSON还是 HTML
+    if (req.xhr || req.accepts('json,html') === 'json') {
+        //如果发生错误,应该发送 { error: 'error description' }
+        res.send({ success: true });
+    } else {
+        //重定向
+        res.redirect(303, '/thank-you')
+    }
 });
 
 //重定向thank-you界面
