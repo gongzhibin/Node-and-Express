@@ -102,7 +102,7 @@ app.get('/newsletter', function (req, res) {
 });
 //post方法解析需要加 body-parser 中间件
 app.post('/process', function (req, res) {
-    console.log(req.body);
+    console.log(req.body);  
     console.log('表单 (from querystring): ' + req.query.form);
     console.log('CSRF令牌(来自隐藏表单): ' + req.body._csrf);
     console.log('姓名(来自可见表单): ' + req.body.name);
@@ -114,14 +114,19 @@ app.post('/process', function (req, res) {
         //如果发生错误,应该发送 { error: 'error description' }
         res.send({ success: true });
     } else {
-        //重定向
+        //若发生错误，应重定向到错误页面
         res.redirect(303, '/thank-you')
     }
 });
 
 //重定向thank-you界面
 app.get('/thank-you', function (req, res) {
-    res.render('thank-you')
+    res.render('thank-you');
+});
+
+//contact界面
+app.get('/contact',function(req,res){
+    res.render('contact');
 });
 
 //景点

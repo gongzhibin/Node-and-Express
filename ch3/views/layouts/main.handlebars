@@ -6,16 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>node and express</title>
+    <script src="https://cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+        crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+        crossorigin="anonymous"></script>
     {{#if showTests}}
-    <link rel="stylesheet" href="/vendor/mocha.css">
-    {{/if}}
-    {{{_sections.head}}}
-    {{!--<script src="//code.jquery.com/jquery-2.0.2.min.js"></script>--}}
+    <link rel="stylesheet" href="/vendor/mocha.css"> {{/if}} {{{_sections.head}}} {{!--
+    <script src="//code.jquery.com/jquery-2.0.2.min.js"></script>--}}
 </head>
 
 <body>
-    {{{body}}}
-    {{#if showTests}}
+    {{{body}}} {{#if showTests}}
     <div id="mocha"></div>
     <script src="/vendor/mocha.js"></script>
     <script src="/vendor/chai.js"></script>
@@ -31,7 +33,6 @@
         mocha.run();
     </script>
     {{/if}}
-    <script src="//code.jquery.com/jquery-2.0.2.min.js"></script>
     {{{_sections.jquery}}}
 </body>
 
