@@ -2,6 +2,7 @@ var express = require('express');
 var app = express();
 var path = require('path');
 var bodyParser = require('body-parser');
+var formidable = require('formidable');
 
 var fortunes = require('./lib/fortunes.js');
 var getWeatherData = require('./lib/getWeatherData.js');
@@ -136,6 +137,26 @@ app.get('/tours/hood-river', function (req, res) {
 app.get('/tours/request-group-rate', function (req, res) {
     res.render('tours/request-group-rate');
 });
+
+//创建文件上传路由处理程序
+app.get('/contest/vacation-photo', function (req, res) {
+    var now = new Date();
+    //注意：res.render中的路由，第一个子文件夹不用加‘/’
+    res.render('contest/vacation-photo',{
+        year:now.getFullYear(),
+        month:now.getMonth()
+    });
+});
+app.post('/contest/vacation-photo/:year/:month', function (req, res) {
+    var form = new formidable.IncomingForm();
+    form.parse(req, function (err, fields, files) {
+        if (err) { return res.redirect(303, '/error'); }
+        console.log('Receive fields: ' + fields);
+        console.log('Receive files: ' + files);
+        res.redirect(303, '/thank-you');
+    })
+});
+
 
 // 对定制的 404 和 500 页面的处理与对普通页面的处理应有所区别:
 // 用的不是app.get ,而是 app.use 。 
