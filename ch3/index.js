@@ -3,9 +3,13 @@ var app = express();
 var path = require('path');
 var bodyParser = require('body-parser');
 var formidable = require('formidable');
+var expressSession = require('express-session');
+var cookieParser = require('cookie-parser');
 
 var fortunes = require('./lib/fortunes.js');
 var getWeatherData = require('./lib/getWeatherData.js');
+//获取cookie秘钥，凭证外化
+var credentials = require('./credentials.js');
 
 // 设置handlers视图引擎
 var handlebars = require('express-handlebars')
@@ -32,11 +36,23 @@ app.use(express.static(__dirname + '/public'));// 这里的文件夹前面需要
 //设置body-parser,解析URL编码体
 app.use(bodyParser());
 
+//设置cookie和会话
+app.use(cookieParser(credentials.cookieSecret));
+app.use(expressSession());
+
 //测试
 app.use(function (req, res, next) {
     // 如果test=1 出现在任何页面的查询字符串中(并且不是运行在生产服务器上),
     // 属性 res.locals.showTests 就会被设为 true 。
     res.locals.showTests = app.get('env') !== 'production' && req.query.test === '1';
+    next();
+});
+
+//处理即显消息
+app.use(function (req, res, next) {
+    //如果有即显消息，将其传到上下文，然后清除它
+    res.locals.flash = req.session.flash;
+    delete req.session.flash;
     next();
 });
 
@@ -103,7 +119,7 @@ app.get('/newsletter', function (req, res) {
 });
 //post方法解析需要加 body-parser 中间件
 app.post('/process', function (req, res) {
-    console.log(req.body);  
+    console.log(req.body);
     console.log('表单 (from querystring): ' + req.query.form);
     console.log('CSRF令牌(来自隐藏表单): ' + req.body._csrf);
     console.log('姓名(来自可见表单): ' + req.body.name);
@@ -126,7 +142,7 @@ app.get('/thank-you', function (req, res) {
 });
 
 //contact界面
-app.get('/contact',function(req,res){
+app.get('/contact', function (req, res) {
     res.render('contact');
 });
 
@@ -142,9 +158,9 @@ app.get('/tours/request-group-rate', function (req, res) {
 app.get('/contest/vacation-photo', function (req, res) {
     var now = new Date();
     //注意：res.render中的路由，第一个子文件夹不用加‘/’
-    res.render('contest/vacation-photo',{
-        year:now.getFullYear(),
-        month:now.getMonth()
+    res.render('contest/vacation-photo', {
+        year: now.getFullYear(),
+        month: now.getMonth()
     });
 });
 app.post('/contest/vacation-photo/:year/:month', function (req, res) {
@@ -157,6 +173,12 @@ app.post('/contest/vacation-photo/:year/:month', function (req, res) {
     })
 });
 
+//即显消息
+app.post('/newsletter', function (req, res) {
+    var name = req.body.name || '';
+    var email = req.body.email || '';
+    
+});
 
 // 对定制的 404 和 500 页面的处理与对普通页面的处理应有所区别:
 // 用的不是app.get ,而是 app.use 。 

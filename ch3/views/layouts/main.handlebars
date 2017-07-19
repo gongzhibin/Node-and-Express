@@ -11,13 +11,35 @@
         crossorigin="anonymous">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
         crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="/css/main.css">
     {{#if showTests}}
     <link rel="stylesheet" href="/vendor/mocha.css"> {{/if}} {{{_sections.head}}} {{!--
     <script src="//code.jquery.com/jquery-2.0.2.min.js"></script>--}}
 </head>
 
 <body>
-    {{{body}}} {{#if showTests}}
+    <!--[if lt IE 7]>
+            <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+    <![endif]-->
+    <header><img src="/img/logo.png" alt="Meadowlark Travel Logo"></header>
+
+    <div class="container">
+        {{#if flash}}
+        <div class="alert alert-dismissible alert-{{flash.type}}">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+            <strong>{{flash.intro}}</strong> {{{flash.message}}}
+        </div>
+        {{/if}} {{{body}}}
+
+        <hr>
+
+        <footer>
+            <div class="col-sm-2"><a href="https://github.com/gongzhibin/Node-and-Express">github地址</a></div>
+            <div class="col-sm-2">&copy; zxlg 2017</div>
+        </footer>
+    </div>
+
+    {{#if showTests}}
     <div id="mocha"></div>
     <script src="/vendor/mocha.js"></script>
     <script src="/vendor/chai.js"></script>
@@ -32,8 +54,7 @@
     <script>
         mocha.run();
     </script>
-    {{/if}}
-    {{{_sections.jquery}}}
+    {{/if}} {{{_sections.jquery}}}
 </body>
 
 </html>
