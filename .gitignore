@@ -1,4 +1,4 @@
 # ignore packages installed by npm
 # 匹配所有目录下的 node_modules 文件夹
 node_modules/
-credential.js
+credentials.js
