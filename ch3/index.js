@@ -288,20 +288,21 @@ Product.findOne = function (conditions, fields, options, cb) {
     });
 };
 
+
 //购物车
-app.get('/tours/:tour', function (req, res, next) {
-    Product.findOne({ category: 'tour', slug: req.params.tour }, function (err, tour) {
-        if (err) return next(err);
-        if (!tour) return next();
-        res.render('tour', { tour: tour });
-    });
+app.get('/tours/:tour', function(req, res, next){
+	Product.findOne({ category: 'tour', slug: req.params.tour }, function(err, tour){
+		if(err) return next(err);
+		if(!tour) return next();
+		res.render('tour', { tour: tour });
+	});
 });
-app.get('/adventures/:subcat/:name', function (req, res, next) {
-    Product.findOne({ category: 'adventure', slug: req.params.subcat + '/' + req.params.name }, function (err, adventure) {
-        if (err) return next(err);
-        if (!adventure) return next();
-        res.render('adventure', { adventure: adventure });
-    });
+app.get('/adventures/:subcat/:name', function(req, res, next){
+	Product.findOne({ category: 'adventure', slug: req.params.subcat + '/' + req.params.name  }, function(err, adventure){
+		if(err) return next(err);
+		if(!adventure) return next();
+		res.render('adventure', { adventure: adventure });
+	});
 });
 
 var cartValidation = require('./lib/cartValidation.js');
@@ -309,21 +310,21 @@ var cartValidation = require('./lib/cartValidation.js');
 app.use(cartValidation.checkWaivers);
 app.use(cartValidation.checkGuestCounts);
 
-app.post('/cart/add', function (req, res, next) {
-    var cart = req.session.cart || (req.session.cart = []);
-    Product.findOne({ sku: req.body.sku }, function (err, product) {
-        if (err) return next(err);
-        if (!product) return next(new Error('Unknown product SKU: ' + req.body.sku));
-        cart.push({
-            product: product,
-            guests: req.body.guests || 0,
-        });
-        res.redirect(303, '/cart');
-    });
+app.post('/cart/add', function(req, res, next){
+	var cart = req.session.cart || (req.session.cart = []);
+	Product.findOne({ sku: req.body.sku }, function(err, product){
+		if(err) return next(err);
+		if(!product) return next(new Error('Unknown product SKU: ' + req.body.sku));
+		cart.push({
+			product: product,
+			guests: req.body.guests || 0,
+		});
+		res.redirect(303, '/cart');
+	});
 });
-app.get('/cart', function (req, res) {
-    var cart = req.session.cart || (req.session.cart = []);
-    res.render('cart', { cart: cart });
+app.get('/cart', function(req, res){
+	var cart = req.session.cart || (req.session.cart = []);
+	res.render('cart', { cart: cart });
 });
 
 // 对定制的 404 和 500 页面的处理与对普通页面的处理应有所区别:
