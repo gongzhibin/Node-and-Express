@@ -188,26 +188,26 @@ app.post('/newsletter', function (req, res) {
         if (req.xhr) return res.json({ error: 'Invalid email address.' });
         req.session.flash = {
             type: 'danger',
-            intro: 'Validation error!',
+            intro: '校验错误!',
             message: '邮箱地址不合法.',
         };
-        return res.redirect(303, 'newsletter/archive');
+        return res.redirect(303, 'contact');
     }
     new NewsletterSignup({ name: name, email: email }).save(function (err) {
         if (err) {
             if (req.xhr) return res.json({ error: 'Database error.' });
             req.session.flash = {
                 type: 'danger',
-                intro: 'Database error!',
+                intro: '数据库错误!',
                 message: '发生了数据库错误，请稍后重试.',
             };
-            return res.redirect(303, 'newsletter/archive');
+            return res.redirect(303, 'contact');
         }
         if (req.xhr) return res.json({ success: true });
         req.session.flash = {
             type: 'success',
-            intro: 'thank you!',
-            message: '你已经注册了简报.',
+            intro: '谢谢!',
+            message: '你已经成功注册了简报.',
         }
         return res.redirect(303, 'newsletter/archive');
     });
