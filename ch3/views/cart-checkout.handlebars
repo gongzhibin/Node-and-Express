@@ -1,0 +1,23 @@
+<h1>你的购物车</h1>
+<p>请添加您的邮箱来确认您的订单</p>
+<form class="form-horizontal newsletterForm" role="form" action="/cart/checkout" method="POST">
+    <div class="form-group">
+        <label for="fieldName" class="col-sm-2 control-label">姓名</label>
+        <div class="col-sm-4">
+            <input type="text" class="form-control" required 
+                id="fieldName" name="name">
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="fieldEmail" class="col-sm-2 control-label">邮箱</label>
+        <div class="col-sm-4">
+            <input type="email" class="form-control" required 
+                id="fieldEmail" name="email">
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-4">
+            <button type="submit" class="btn btn-default">结账</button>
+        </div>
+    </div>
+</form>

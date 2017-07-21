@@ -5,6 +5,8 @@ var bodyParser = require('body-parser');
 var formidable = require('formidable');
 var expressSession = require('express-session');
 var cookieParser = require('cookie-parser');
+//express邮件处理程序
+var nodemailer = require('nodemailer');
 
 var fortunes = require('./lib/fortunes.js');
 var getWeatherData = require('./lib/getWeatherData.js');
@@ -28,7 +30,7 @@ app.engine('handlebars', handlebars.engine);
 app.set('view engine', 'handlebars');
 
 //设置端口
-app.set('port', process.env.PORT || 3001);
+app.set('port', process.env.PORT || 3000);
 
 //设置静态文件夹
 app.use(express.static(__dirname + '/public'));// 这里的文件夹前面需要加/
@@ -240,14 +242,14 @@ Product.find = function (conditions, fields, options, cb) {
     }
     var products = [
         {
-            name: '英雄联盟',
+            name: '青海湖',
             slug: 'hood-river',
             category: 'tour',
             maximumGuests: 15,
             sku: 723,
         },
         {
-            name: '王者荣耀',
+            name: '王者大峡谷',
             slug: 'oregon-coast',
             category: 'tour',
             maximumGuests: 10,
@@ -290,19 +292,19 @@ Product.findOne = function (conditions, fields, options, cb) {
 
 
 //购物车
-app.get('/tours/:tour', function(req, res, next){
-	Product.findOne({ category: 'tour', slug: req.params.tour }, function(err, tour){
-		if(err) return next(err);
-		if(!tour) return next();
-		res.render('tour', { tour: tour });
-	});
+app.get('/tours/:tour', function (req, res, next) {
+    Product.findOne({ category: 'tour', slug: req.params.tour }, function (err, tour) {
+        if (err) return next(err);
+        if (!tour) return next();
+        res.render('tour', { tour: tour });
+    });
 });
-app.get('/adventures/:subcat/:name', function(req, res, next){
-	Product.findOne({ category: 'adventure', slug: req.params.subcat + '/' + req.params.name  }, function(err, adventure){
-		if(err) return next(err);
-		if(!adventure) return next();
-		res.render('adventure', { adventure: adventure });
-	});
+app.get('/adventures/:subcat/:name', function (req, res, next) {
+    Product.findOne({ category: 'adventure', slug: req.params.subcat + '/' + req.params.name }, function (err, adventure) {
+        if (err) return next(err);
+        if (!adventure) return next();
+        res.render('adventure', { adventure: adventure });
+    });
 });
 
 var cartValidation = require('./lib/cartValidation.js');
@@ -310,22 +312,88 @@ var cartValidation = require('./lib/cartValidation.js');
 app.use(cartValidation.checkWaivers);
 app.use(cartValidation.checkGuestCounts);
 
-app.post('/cart/add', function(req, res, next){
-	var cart = req.session.cart || (req.session.cart = []);
-	Product.findOne({ sku: req.body.sku }, function(err, product){
-		if(err) return next(err);
-		if(!product) return next(new Error('Unknown product SKU: ' + req.body.sku));
-		cart.push({
-			product: product,
-			guests: req.body.guests || 0,
-		});
-		res.redirect(303, '/cart');
-	});
+app.post('/cart/add', function (req, res, next) {
+    var cart = req.session.cart || (req.session.cart = []);
+    Product.findOne({ sku: req.body.sku }, function (err, product) {
+        if (err) return next(err);
+        if (!product) return next(new Error('Unknown product SKU: ' + req.body.sku));
+        cart.push({
+            product: product,
+            guests: req.body.guests || 0,
+        });
+        res.redirect(303, '/cart');
+    });
 });
-app.get('/cart', function(req, res){
-	var cart = req.session.cart || (req.session.cart = []);
-	res.render('cart', { cart: cart });
+app.get('/cart', function (req, res) {
+    var cart = req.session.cart || (req.session.cart = []);
+    res.render('cart', { cart: cart });
 });
+
+//添加邮件处理
+var mailTransport = nodemailer.createTransport({
+    host: 'smtp.163.com',
+    port: 465,
+    secure: true,
+    auth: {
+        user: credentials.wymail.user,
+        pass: credentials.wymail.password,
+    },
+});
+// mailTransport.sendMail({
+//     from: '"zxlg site test"<gzb19930714@163.com>',
+//     to: 'zxlg1993@gmail.com,2271721552@qq.com,1041259804@qq.com',
+//     subject: '你的度假安排',
+//     html: '<h1>无敌美少女</h1>\n<p>感谢你选择与我并肩作战.</p><b>期待下一次的旅程</b>',
+//     generateTextFromHtml: true,
+// }, function (err) {
+//     if (err) console.error('Unable to send email: ' + err);
+// })
+
+//添加购物车检查路由
+app.get('/cart/checkout', function(req, res, next){
+	var cart = req.session.cart;
+	if(!cart) next();
+	res.render('cart-checkout');
+});
+app.get('/cart/thank-you', function(req, res){
+	res.render('cart-thank-you', { cart: req.session.cart });
+});
+app.get('/email/cart/thank-you', function(req, res){
+	res.render('email/cart-thank-you', { cart: req.session.cart, layout: null });
+});
+
+app.post('/cart/checkout', function (req, res) {
+    var cart = req.session.cart;
+    if (!cart) next(new Error('Cart does not exist.'));
+    var name = req.body.name || '';
+    var email = req.body.email || '';
+    //输入验证
+    if (!email.match(VALID_EMAIL_REGEX)) {
+        return res.next(new Error('Invalid email address.'));
+    }
+    //分配一个随机的购物车ID,一般选用数据库ID
+    cart.number = Math.random().toString().replace(/^0\.0*/, '');
+    cart.billing = {
+        name: name,
+        email: email,
+    }
+    res.render('email/cart-thank-you', {
+        layout: null,//第一次调用避开正常渲染
+        cart: cart,
+    }, function (err, html) {
+        if (err) console.log('error in email template');
+        mailTransport.sendMail({
+            from: '"zxlg site test"<gzb19930714@163.com>',
+            to: cart.billing.email,
+            subject: '谢谢你在zxlg网站预定旅游计划',
+            html: html,
+            generateTextFromHtml: true,
+        }, function (err) {
+            if (err) console.error('Unable to send email: ' + err);
+        })
+    });
+    res.render('cart-thank-you', { cart: cart });
+})
 
 // 对定制的 404 和 500 页面的处理与对普通页面的处理应有所区别:
 // 用的不是app.get ,而是 app.use 。 
