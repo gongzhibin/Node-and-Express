@@ -5,6 +5,7 @@ var bodyParser = require('body-parser');
 var formidable = require('formidable');
 var expressSession = require('express-session');
 var cookieParser = require('cookie-parser');
+var fs = require('fs');
 //express邮件处理程序
 var nodemailer = require('nodemailer');
 
@@ -160,6 +161,16 @@ app.get('/tours/request-group-rate', function (req, res) {
     res.render('tours/request-group-rate');
 });
 
+//摄影大赛图片保存
+var dataDir = __dirname + '/data';
+var vacationPhotoDir = dataDir + '/vacation-photo';
+fs.existsSync(dataDir) || fs.mkdirSync(dataDir);
+fs.existsSync(vacationPhotoDir) || fs.mkdirSync(vacationPhotoDir);
+
+function saveContestEntry(contestName, email, year, month, photoPath) {
+
+};
+
 //创建文件上传路由处理程序
 app.get('/contest/vacation-photo', function (req, res) {
     var now = new Date();
@@ -173,10 +184,35 @@ app.post('/contest/vacation-photo/:year/:month', function (req, res) {
     var form = new formidable.IncomingForm();
     form.parse(req, function (err, fields, files) {
         if (err) { return res.redirect(303, '/error'); }
-        console.log('Receive fields: ' + fields);
-        console.log('Receive files: ' + files);
-        res.redirect(303, '/thank-you');
+        // console.log('Receive fields: ' + fields);
+        // console.log('Receive files: ' + files);
+        if (err) {
+            res.session.flash = {
+                type: 'danger',
+                intro: 'Oops!',
+                message: '提交时发生错误，请重试！',
+            }
+            return res.redirect(303, '/contest/vacation-photo');
+        }
+        var photo = files.photo;
+        var dir = vacationPhotoDir + '/' + fields.name + '_' + fields.email;
+        var path = dir + '/' + Date.now() + '_' + photo.name;
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+        var readStream = fs.createReadStream(photo.path);
+        var writeStream = fs.createWriteStream(path);
+        // fs.renameSync(photo.path, dir + '/' + photo.name);
+        readStream.pipe(writeStream);
+        saveContestEntry('vacation-photo', fields.email, req.params.year, req.params.month, path);
+        req.session.flash = {
+            type: 'success',
+            intro: 'Good luck!',
+            message: '你已经提交照片参加比赛，请注意关注通知'
+        };
+        return res.redirect(303, '/contest/vacation-photo/entries');
     })
+});
+app.get('/contest/vacation-photo/entries', function (req, res) {
+    res.render('contest/vacation-photo/entries');
 });
 
 //定义NewsletterSignup:
@@ -350,16 +386,16 @@ var mailTransport = nodemailer.createTransport({
 // })
 
 //添加购物车检查路由
-app.get('/cart/checkout', function(req, res, next){
-	var cart = req.session.cart;
-	if(!cart) next();
-	res.render('cart-checkout');
+app.get('/cart/checkout', function (req, res, next) {
+    var cart = req.session.cart;
+    if (!cart) next();
+    res.render('cart-checkout');
 });
-app.get('/cart/thank-you', function(req, res){
-	res.render('cart-thank-you', { cart: req.session.cart });
+app.get('/cart/thank-you', function (req, res) {
+    res.render('cart-thank-you', { cart: req.session.cart });
 });
-app.get('/email/cart/thank-you', function(req, res){
-	res.render('email/cart-thank-you', { cart: req.session.cart, layout: null });
+app.get('/email/cart/thank-you', function (req, res) {
+    res.render('email/cart-thank-you', { cart: req.session.cart, layout: null });
 });
 
 app.post('/cart/checkout', function (req, res) {
@@ -419,6 +455,6 @@ app.use(function (err, req, res, next) {
 });
 
 app.listen(app.get('port'), function () {
-    console.log('Express started on http://localhost:' +
+    console.log('Express started in ' + app.get('env') + ' mode on http://localhost:' +
         app.get('port') + '; press Ctrl-C to terminate.');
 });
